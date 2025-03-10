@@ -84,6 +84,7 @@ let category = [
       const nextBtn = document.getElementById("nextBtn");
       if (nextBtn) {
         nextBtn.addEventListener("click", () => {
+          document.getElementById("show_answer").innerHTML = ""
           currentIndex++;
           console.log("Current Index: ", currentIndex);
           showQuestion();
@@ -134,7 +135,7 @@ let category = [
   async function startTimer() {
     return new Promise((resolve) => {
       timeLeft = 15; // Reset time for each new question
-      timerDisplay = document.getElementById("timerDisplay"); // Element to show the timer
+      let timerDisplay = document.getElementById("timerDisplay"); // Element to show the timer
       timerDisplay.textContent = `Time left: ${timeLeft}s`;  // Display initial time
   
       // Timer countdown logic
@@ -215,10 +216,15 @@ let category = [
         //correct anss
         if (button.textContent === currentQuestion.correct_answer) {
           button.style.background = "rgb(131 195 137)";
+          document.getElementById("show_answer").innerHTML = "Correct Answer !";
+          setTimeout(() => {
+            document.getElementById("show_answer").innerHTML = "";
+          },2000);
           score++;
         } else {
           //false ans
           button.style.background = "rgb(217 114 114)";
+          showAnswer(); // Show the correct answer when the user selects an answer
         }
       }
       button.disabled = true; // Disable all buttons after one is selected
@@ -252,11 +258,21 @@ let category = [
       }
       button.disabled = true; // Disable all buttons after time runs out
     });
-  
+    
+    // Show the correct answer after a short delay
+    showAnswer(); 
+
     // Move to next question after a short delay
     setTimeout(() => {
       currentIndex++;
       showQuestion();
     }, 2000);
   }
+    //Show the correct answer
+    function showAnswer(){
+      let currentQuestion = questions[currentIndex];
+      let correctAnswer = document.getElementById("show_answer");
+      correctAnswer.innerHTML = `Correct Answer: ${currentQuestion.correct_answer}`;
+      setTimeout(() => {correctAnswer.innerHTML = "";},2000);
+    }
   
