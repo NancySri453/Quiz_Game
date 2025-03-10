@@ -29,6 +29,9 @@ let category = [
   let url2 = "";
   let questions = [];
   let currentIndex = 0;
+  let timer;
+  let timeLeft = 15;
+  let timerdisplay;
   
   // -------------------- Page-specific Logic --------------------
   
@@ -127,9 +130,28 @@ let category = [
       optionsContainer.innerHTML = "";
     }
   }
+  //Start Timer 
+  async function startTimer() {
+    return new Promise((resolve) => {
+      timeLeft = 15; // Reset time for each new question
+      timerDisplay = document.getElementById("timerDisplay"); // Element to show the timer
+      timerDisplay.textContent = `Time left: ${timeLeft}s`;  // Display initial time
   
+      // Timer countdown logic
+      timer = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = `Time left: ${timeLeft}s`; // Update the timer display
+        if (timeLeft <= 0) {
+          clearInterval(timer); // Stop the timer when it reaches 0
+          resolve();  // Resolve the promise after the timer ends
+          showCorrectAnswer(); // Automatically show the correct answer
+        }
+      }, 1000);  // Update every second
+    });
+  }
+
   // -------------------- Show Question --------------------
-  function showQuestion() {
+  async function showQuestion() {
     const nextBtn = document.getElementById("nextBtn");
 
     document.querySelector(".score").textContent = `Score: ${score}`;
@@ -139,7 +161,6 @@ let category = [
       document.getElementById("question").innerHTML = `Quiz Finished! <span> You scored ${score} out of 10</span>`;
       document.getElementById("options").innerHTML = "";
       if (nextBtn) nextBtn.style.display = "none";
-
       return;
     }
   
@@ -150,18 +171,17 @@ let category = [
   
     // Show actual question
     questionContainer.innerHTML = ""; // Clear previous question
-
     const questionNumber = document.createElement("span");
-    questionNumber.className='quesnum';
+    questionNumber.className = 'quesnum';
     questionNumber.textContent = `${currentIndex + 1}. `;
-    
+  
     const questionText = document.createElement("span");
-    questionText.className='question-text'
+    questionText.className = 'question-text';
     questionText.innerHTML = questionData.question; // Only use if content is safe
-    
+  
     questionContainer.appendChild(questionNumber);
     questionContainer.appendChild(questionText);
-      
+  
     let answers = [...questionData.incorrect_answers, questionData.correct_answer];
     answers.sort(() => Math.random() - 0.5);
   
@@ -172,9 +192,12 @@ let category = [
       button.className = "option";
       button.id = "option-" + index;
       button.textContent = answer;
-      button.onclick = () => checkAnswer(index);
+      button.onclick = () => checkAnswer(index); // Check answer when clicked
       optionsContainer.appendChild(button);
     });
+  
+    // Start the timer when the question is shown
+    await startTimer();
   }
   
   // -------------------- Check Answer --------------------
@@ -184,6 +207,8 @@ let category = [
   
     let currentQuestion = questions[currentIndex];
   
+    clearInterval(timer);
+
     // Check answer and update button styles
     buttons.forEach((button, index) => {
       if (index === selectedIndex) {
@@ -205,5 +230,33 @@ let category = [
         button.style.background = "rgb(131 195 137)";
       }
     });
+
+    //Move to next question after a short delay
+    setTimeout(() => {
+      currentIndex++;
+      showQuestion();
+    }, 2000);
+  }
+
+  //Show Correct Answer
+  function showCorrectAnswer() {
+    let optionsContainer = document.getElementById("options");
+    const buttons = Array.from(optionsContainer.children);
+  
+    let currentQuestion = questions[currentIndex];
+  
+    // Highlight the correct answer after timer runs out
+    buttons.forEach((button) => {
+      if (button.textContent === currentQuestion.correct_answer) {
+        button.style.background = "rgb(131 195 137)"; // Correct answer color
+      }
+      button.disabled = true; // Disable all buttons after time runs out
+    });
+  
+    // Move to next question after a short delay
+    setTimeout(() => {
+      currentIndex++;
+      showQuestion();
+    }, 2000);
   }
   
